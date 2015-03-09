@@ -85,4 +85,4 @@ function resize() {
   }
 };
 window.addEventListener('resize', resize, false);
-window.onload = resizeCanvas;
+window.onload = resize;
