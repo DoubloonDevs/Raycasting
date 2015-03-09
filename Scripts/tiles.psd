@@ -1,0 +1,83 @@
+function Object(x, y, width, height, isStatic, isPlayer, fill) {
+  this.x = x;
+  this.y = y;
+  this.velx = 0;
+  this.vely = 0;
+  this.width = width;
+  this.height = height;
+  this.isStatic = isStatic;
+  this.isPlayer = isPlayer;
+  this.colour = fill;
+  this.pinned = false;
+  this.jumping = true;
+  this.speed = 3;
+  this.isColliding = false;
+}
+Object.prototype.applyImpulse = function(xDirection, yDirection, force, jetpack) {
+  this.xDirection = xDirection;
+  this.yDirection = yDirection;
+  this.force = force;
+  this.jetpack = jetpack;
+  this.angle = Math.atan2(this.yDirection, this.xDirection);
+  if (!this.jetpack) {
+    this.velx += Math.cos(this.angle) * this.force;
+    this.vely = Math.sin(this.angle) * this.force;
+  }
+  else if (this.jetpack) {
+    if (this.velx > -this.force) {
+      this.velx += Math.cos(this.angle) * this.force/5;
+    }
+    if (this.vely > -this.force) {
+      this.vely += Math.sin(this.angle) * this.force/5;
+    }
+  }
+  this.jumping = true;
+};
+Object.prototype.collidingWith = function(obj) {
+  if (this.x > obj.x + obj.width) {
+    return false;
+  }
+  if (this.x + this.width < obj.x) {
+    return false;
+  }
+  if (this.y > obj.y + obj.height) {
+    return false;
+  }
+  if (this.y + this.height < obj.y) {
+    return false;
+  } else {
+    return true;
+  }
+};
+Object.prototype.pin = function(parent, xoffset, yoffset) {
+  this.x = parent.x + xoffset;
+  this.y = parent.y + yoffset;
+  this.pinned = true;
+};
+Object.prototype.applyForces = function() {
+  this.velx *= world.dampening;
+  if (!this.isColliding) this.vely += world.gravity;
+  this.x += this.velx;
+  this.y += this.vely;
+};
+Object.prototype.control = function() {
+  if (leftPressed && this.velx > -this.speed) this.velx--;
+  if (rightPressed && this.velx < this.speed) this.velx++;
+};
+Object.prototype.update = function() {
+  if (!this.isStatic && !this.pinned) {
+    this.applyForces();
+  }
+  if (this.isPlayer) {
+    this.control();
+    if (upPressed && !this.jumping) {
+      this.y -= 1;
+      this.applyImpulse(0, -1, this.speed*2, false);
+      this.jumping = true;
+    }
+  }
+};
+Object.prototype.display = function() {
+  c.fillStyle = this.colour;
+  c.fillRect(this.x, this.y, this.width, this.height);
+};
